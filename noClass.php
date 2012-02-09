@@ -19,7 +19,7 @@ $start = $time;
 	in PHP5 - but ruby and python editions would probably be easier to implement due to their 
 	native OOP language design.
 	
-	DEPENDECIES :
+	DEPENDENCIES :
 	
 	PHP 5.3
 	poform (for record editing/creation)
@@ -86,6 +86,7 @@ class noClass_html{
 	
 		if($_id != false){
 			$r = $this->getRecord($_id);
+			// if this is false then we need to do something to prevent showing an empty structure?
 			if($action == false){
 				$this->arrayToSelf($r);
 				return $this;
@@ -159,7 +160,13 @@ class noClass_html{
 					}
 				// operate on a clone so we can retain the field attributes that get replaced when using $this($_id),
 				// and properly populate the input fields ;
-					$this->editor = poform::auto(get_class_vars(get_called_class()));
+				//	$this->editor = poform::auto(get_class_vars(get_called_class()));
+
+				// this DOESNT work ... better to clone 
+				
+				// maybe better to use get_class_vars and then intesect with $this ?
+					$this_2 = clone $this;
+					$this->editor = poform::auto($this_2);
 					return $this($_id);
 					
 				}else{
@@ -170,8 +177,12 @@ class noClass_html{
 		}
 		// hmm probably make a form ... ?
 		if($action != false){
+		// weird hack to get the record to display in the editor
 			!isset($this->editor) AND $this->editor = poform::auto($this);
 			$this->arrayToSelf($r);
+			$called_class = get_called_class();
+			$called_class = new $called_class();
+			echo $called_class($_id);
 		}
 		return $this;
 	}
@@ -224,13 +235,15 @@ class noClass_html{
 		But I do see the advantage of this pattern to track 'external' changes to a class. And
 		in the case of dynamically loaded classes, we can use it to 'revert' to its default, although
 		we may still be able to do this with a dynamically loaded class.
-	
+		
+		These dont work in 'edit' mode... disabling them until I actually implement it.
 	*/
 
+/*
 	public function __set($name,$value){
 	// __set() is run when writing data to inaccessible properties.
 	// add the parameter to $_f ;
-//	PHP Notice:  Indirect modification of overloaded property blog::$_se has no effect in /var/www/htdocs/mdocs.net/sandbox/ez_cms.php on line 234	
+//	PHP Notice:  Indirect modification of overloaded property blog::$_se has no effect 	
 //		$this->data[$name] = $value;
 		if(isset($this->_f)) $this->_f []= $name;
 		else
@@ -254,23 +267,59 @@ class noClass_html{
 		unset($this->_f[$name]);
 		if(isset($this->_r[$name])) unset($this->_r);
 	}
+	*/
 }
 
-// the more advanced 'blog' class
+/* 	Quick class to demonstrate how to use __callStatic to use an object method call to 
+	 set parameters through the use of strings ... so to use '+' as a seperator you must
+	 define each method call as a string in another variable
+	 $static_call = "div+my_class+my_id";
+	 $content = 'Stuff for inside the div';
+	 htmler::$static_call($content);
+
+
+*/
+class htmler{
+	public static function __callStatic($name,$arguments){
+	// using pluses because underscores are used elsewhere...
+		$name = explode('+',$name);
+	// some basic container types that can fit the mold.. might want to check out my own
+	// html5 core
+		if(in_array($name[0],array( 'div','ul','li','ol','table'))) {
+			$count = (int) count($name);
+		// use switch statement for this ..
+			if($count == 3) 
+				return self::html_container($arguments[0],$name[1],$name[2],$name[0]);
+			// support class only designations
+			if($count == 2)
+				return self::html_container($arguments[0],$name[1],NULL,$name[0]);
+			if($count == 1)
+				return self::html_container($arguments[0],NULL,NULL,$name[0]);
+		}
+	}
+	
+	public function html_container($value,$class=NULL,$id=NULL,$container='div'){
+		// probably best with div or ul/ol etc.	
+		return "\n<$container ".trim(($class ==NULL?'':" class='$class' ") . ($id == NULL?'': " id='$id' ")).">\n\t$value\n</$container>\n";
+	}
+
+}
 
 class blog extends noClass_html{
 
 	public $_f = array('_id','post_title','category','post_type','post_tags','publisher','summary','content','status');
 	public $_r = array('_id','post_title','post_type','publisher','content','status');
 	public $post_title;
+
 	public $category;
 	public $parent_category;
+	public $content = 'textarea ';
+
 	public $post_tags;
 	public $thumbnail_image;
 	public $front_image;
 	public $parent_post;
 	public $post_type = array('select:post_type '=> array('post'=>'Post','page'=>'Page'));
-	public $content = 'textarea ';
 	public $publisher;
 	public $summary = 'textarea ';
 	public $published = 'date ';
@@ -278,41 +327,43 @@ class blog extends noClass_html{
 	public $last_edit;
 	public $status = array('select:status'=> array('draft'=>'Draft','published'=>'Published','private'=>'Private'  ) );
 
+
 	public function __toString(){
 		$this->title .= $this->post_title;
+		$template = '';
+		// this might not be a terrible _t (restricted template field ? )
+		$restricted_template_fields = array('_id','_rev','post_type','status');
+		
+		foreach($this as $key=>$value){
+			if($key != '_id' && $key != '_rev' && $key != 'post_type' && $key != 'status')
+				if(in_array($key,$this->_f) && !in_array($restricted_template_fields)){
+					if($value != ''){
+					// do a per-key processing to handle some specific display values
+					// ex: show some stuff as ul/li's
+						$html_call = "div+$key";
+						$template .= "\t\t".htmler::$html_call($value);
+					}
+					
+				}		
+		}
 		// add other stuff and formatting inside of $this->body mostly...
 		// set content to a mashup of the array's parameters create function that generates html...
-		$template = 
-"\n\t<div id='page'>
-		<div class='post'>
-			<div class='title'>$this->post_title</div>
-			<div class='cat'>$this->category</div>
-			<div class='publisher'>$this->publisher</div>
-			<div class='published'>$this->published</div>
-			
-			<div class='post_content'>
-				$this->content
-			</div>
-		</div>
-	</div>\n";
-
-		$this->body = $template;
+		$html_call = "div+post";
+		if($template != ''){
+			$template = "\t\t<div id='page'>\n".htmler::$html_call($template) . "\n</div>";
+			$this->body = $template;
+		}
 		// css code
 		$this->head .= "<link rel='stylesheet' href='style.css'>\n\t";
 		return parent::__toString();
 	}
-	public function __construct($json=NULL){
-		;		
-	}
-
 }
 
 $blog = apc_fetch('blog');
 // simple one line APC check/setter
 !$blog && $blog = new blog AND apc_add('blog',$blog);
 
-	
-echo $blog('test');
+echo $blog();
 
 $time = microtime(); 
 $time = explode(" ", $time); 
