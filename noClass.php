@@ -78,7 +78,8 @@ class noClass_html{
 	// many things - display a record $object('record_id')
 	// create /edit a new record $object()
 	// edit an existing record $object('record_id','edit');
-		if(!$_id && !$action && $_SERVER['REQUEST_METHOD'] != "POST"){
+		if(!$_id && !$action && isset($_SERVER['REQUEST_METHOD']) ){
+			if($_SERVER['REQUEST_METHOD'] != "POST" )
 		// a little cleanup mostly for debugging...
 			unset($_POST);
 		}
@@ -192,7 +193,7 @@ class noClass_html{
 	
 	public function __sleep(){
 	// called automagically when serialize is invoked
-		$valid = array()
+		$valid = array();
 		foreach($this as $k=>$v)
 			if(strpos($k,'_') === 0 && strlen($k) == 2 )
 				is_array($v) AND $valid = array_merge($valid,$v);
@@ -225,38 +226,34 @@ class noClass_html{
 		we may still be able to do this with a dynamically loaded class.
 	
 	*/
-	
+
 	public function __set($name,$value){
 	// __set() is run when writing data to inaccessible properties.
 	// add the parameter to $_f ;
-	
-		$this->_set[$name] = $value;
+//	PHP Notice:  Indirect modification of overloaded property blog::$_se has no effect in /var/www/htdocs/mdocs.net/sandbox/ez_cms.php on line 234	
+//		$this->data[$name] = $value;
 		if(isset($this->_f)) $this->_f []= $name;
 		else
 			$this->_f = array($name);
 	}
 	
-	public function __get($name){
-		if(array_key_exists($name,$this->_set)){
-			return $this->_set[$name];
-		}
-	}
-	
 	public function __isset($name){
-		return isset($this->_set[$name]);
-	}
-	
-	public function __unset($name){
-	
-		unset($this->_set[$name]);
-		unset($this->_f[$name]);
-		if(isset($this->_r[$name])) unset($this->_r);
-		
-	// remove name from any values in the _r using values from __sleep ? 
-	
+		return isset($this->data[$name]);
 	}
 	
 
+	public function __get($name){
+		if(isset($this->data))
+			if(array_key_exists($name,$this->data))
+				return $this->data[$name];
+		
+	}
+	
+	public function __unset($name){
+		unset($this->data[$name]);
+		unset($this->_f[$name]);
+		if(isset($this->_r[$name])) unset($this->_r);
+	}
 }
 
 // the more advanced 'blog' class
@@ -304,7 +301,7 @@ class blog extends noClass_html{
 		$this->head .= "<link rel='stylesheet' href='style.css'>\n\t";
 		return parent::__toString();
 	}
-	public function __construct($json){
+	public function __construct($json=NULL){
 		;		
 	}
 
@@ -312,10 +309,10 @@ class blog extends noClass_html{
 
 $blog = apc_fetch('blog');
 // simple one line APC check/setter
-!$blog && $blog = new blog AND apc_add('blog',$ez_blog);
+!$blog && $blog = new blog AND apc_add('blog',$blog);
 
 	
-echo $blog();
+echo $blog('test');
 
 $time = microtime(); 
 $time = explode(" ", $time); 
