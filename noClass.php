@@ -237,7 +237,7 @@ class noClass_html{
 	}
 	
 	public function __get($name){
-		if(array_key_exists($name)){
+		if(array_key_exists($name,$this->_set)){
 			return $this->_set[$name];
 		}
 	}
