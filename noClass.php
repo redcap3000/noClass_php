@@ -93,7 +93,7 @@ class noClass_html{
 			}
 			
 		}elseif($_id == false && $action == false && !isset($_POST['_id']) ){
-			if(!class_exists('poform')) require('poform_final.php');
+			if(!class_exists('poform')) require('poform.php');
 			$this->editor = poform::auto($this);
 			return($this);
 		}elseif(!$action && $_id){ 
@@ -104,7 +104,7 @@ class noClass_html{
 			$this->footer = couchCurl::update(json_encode($_POST),get_called_class() );
 		}
 		// load poform only if we need a web editor
-		if(!class_exists('poform')) require('poform_final.php');
+		if(!class_exists('poform')) require('poform.php');
 		if($_SERVER['REQUEST_METHOD'] != "POST"){
 			// set the $_POST to $r so poform properly populates field values			
 			$_POST = $r;
