@@ -1,0 +1,55 @@
+body,#page,#editor{
+	width: 60em;
+	font-family: "Lucida Grande", Lucida, Verdana, sans-serif;
+}
+
+#editor{
+	padding-top: 1em;position: relative;float: left;
+}
+
+#editor fieldset fieldset{
+	float: left;
+	width: 27em;
+	border: none;
+}
+
+input,select{
+	width: 60%; float: right;
+}
+#editor label{ padding: 0 1em 0 0;
+margin-bottom: .5em;
+	font-weight: bold;
+	font-style: italic;
+	color: navy;
+	float: left;
+}
+
+textarea{
+	clear: both;width: 100%;height: 8em;
+}
+
+
+#page{
+	float: left;clear: both;
+}
+
+div.post, div.post_title,div.content{
+	margin: 1em;
+}
+
+div.post_title,div.category,div.publisher {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+div.category,div.publisher{
+	float: right;
+}
+div.content{
+	clear: both; padding: .5em;
+}
+
+
+#stats{
+	display: none;
+}
