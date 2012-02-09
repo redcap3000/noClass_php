@@ -63,6 +63,8 @@ $start = $time;
 */
 
 class noClass_html{
+	public $_f;
+	public $_r;
 	public $_id;
 	public $head;
 	public $title;
@@ -76,7 +78,7 @@ class noClass_html{
 	// many things - display a record $object('record_id')
 	// create /edit a new record $object()
 	// edit an existing record $object('record_id','edit');
-		if(!$_id && !$action){
+		if(!$_id && !$action && $_SERVER['REQUEST_METHOD'] != "POST"){
 		// a little cleanup mostly for debugging...
 			unset($_POST);
 		}
@@ -131,9 +133,9 @@ class noClass_html{
 					}else{
 						// maybe even filter empty values?
 						unset($_POST['rev']);
-						$id_check = str_replace(' ','',$_POST['_id']);
+						$id_check = str_replace(array(' ','_'),'',$_POST['_id']);
 						// this check will fail on spaces anyway ... 
-						if(ctype_alnum($_POST['_id'])){
+						if(ctype_alnum($id_check)){
 							$the_id = str_replace(' ','_',$_POST['_id']);				
 							unset($_POST['_id']);
 						}else{
@@ -156,8 +158,7 @@ class noClass_html{
 					}
 				// operate on a clone so we can retain the field attributes that get replaced when using $this($_id),
 				// and properly populate the input fields ;
-					$this_2 = clone $this;
-					$this->editor = poform::auto($this_2);
+					$this->editor = poform::auto(get_class_vars(get_called_class()));
 					return $this($_id);
 					
 				}else{
@@ -188,6 +189,73 @@ class noClass_html{
 		}
 		return "\n<!doctype html>\n<html>\n\t<head>\n\t$this->head</head>\n\t<body>\n\t\t$this->body\n\t<footer>\n\t\t$this->footer\n\t\t</footer>\n\t</body>\n</html>";
 	}
+	
+	public function __sleep(){
+	// called automagically when serialize is invoked
+		$valid = array()
+		foreach($this as $k=>$v)
+			if(strpos($k,'_') === 0 && strlen($k) == 2 )
+				is_array($v) AND $valid = array_merge($valid,$v);
+				
+		return array_unique($valid);		
+	}
+	
+	/*
+	
+		Haven't used these yet ... but makes for more 'enforced' design patterns.
+		More stuff needs to be written to properly handle dynamically defined 
+		array parameters like '_r' and '_f'. This also wont jive well with classes
+		that mix defined parameters and ones that are created from an external source.
+		
+		It would best be advisable to not mix 'dynamic loaded' classes, but I've done it
+		plenty of times without real ill effects. The processing time could be improved
+		but the memory use is outstanding.
+		
+		These will come into use when users begin adding parameters to classes without
+		defining them first in the class as they set/get/check them.
+		
+		Basically the pattern shown on php.net was to store these parameters to another array.
+		
+		I take it a step further and add a value entry for it to $this->_f. I suppose we do not
+		need to set the value to an extra array? Or can we let it do what it does normally (set the value to
+		the param we request)
+		
+		But I do see the advantage of this pattern to track 'external' changes to a class. And
+		in the case of dynamically loaded classes, we can use it to 'revert' to its default, although
+		we may still be able to do this with a dynamically loaded class.
+	
+	*/
+	
+	public function __set($name,$value){
+	// __set() is run when writing data to inaccessible properties.
+	// add the parameter to $_f ;
+	
+		$this->_set[$name] = $value;
+		if(isset($this->_f)) $this->_f []= $name;
+		else
+			$this->_f = array($name);
+	}
+	
+	public function __get($name){
+		if(array_key_exists($name)){
+			return $this->_set[$name];
+		}
+	}
+	
+	public function __isset($name){
+		return isset($this->_set[$name]);
+	}
+	
+	public function __unset($name){
+	
+		unset($this->_set[$name]);
+		unset($this->_f[$name]);
+		if(isset($this->_r[$name])) unset($this->_r);
+		
+	// remove name from any values in the _r using values from __sleep ? 
+	
+	}
+	
 
 }
 
@@ -236,7 +304,6 @@ class blog extends noClass_html{
 		$this->head .= "<link rel='stylesheet' href='style.css'>\n\t";
 		return parent::__toString();
 	}
-
 	public function __construct($json){
 		;		
 	}
