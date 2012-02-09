@@ -281,11 +281,16 @@ class noClass_html{
 */
 class htmler{
 	public static function __callStatic($name,$arguments){
-	// using pluses because underscores are used elsewhere...
-		$name = explode('+',$name);
+
+		$name = explode('__',$name,2);
+		
+		if($name[0] == 'link'){
+			// do for link__rel('href','anything else inside the quotes....)
+			return self::html_element($name[0],'rel=" '.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
+		}
 	// some basic container types that can fit the mold.. might want to check out my own
 	// html5 core
-		if(in_array($name[0],array( 'div','ul','li','ol','table'))) {
+		elseif(in_array($name[0],array( 'div','ul','li','ol','table'))) {
 			$count = (int) count($name);
 		// use switch statement for this ..
 			if($count == 3) 
@@ -298,9 +303,15 @@ class htmler{
 		}
 	}
 	
-	public function html_container($value,$class=NULL,$id=NULL,$container='div'){
+	private function html_container($value,$class=NULL,$id=NULL,$container='div'){
 		// probably best with div or ul/ol etc.	
 		return "\n<$container ".trim(($class ==NULL?'':" class='$class' ") . ($id == NULL?'': " id='$id' ")).">\n\t$value\n</$container>\n";
+	}
+	
+	
+	// allows almost complete override of how an element is displayed ? for self closing tags like <style > and others ? 
+	private function html_element($element,$inner){
+		return "\n<$element $inner>";
 	}
 
 }
@@ -333,31 +344,31 @@ class blog extends noClass_html{
 		$template = '';
 		// this might not be a terrible _t (restricted template field ? )
 		$restricted_template_fields = array('_id','_rev','post_type','status');
-		
-		foreach($this as $key=>$value){
-			if($key != '_id' && $key != '_rev' && $key != 'post_type' && $key != 'status')
-				if(in_array($key,$this->_f) && !in_array($restricted_template_fields)){
-					if($value != ''){
-					// do a per-key processing to handle some specific display values
-					// ex: show some stuff as ul/li's
-						$html_call = "div+$key";
-						$template .= "\t\t".htmler::$html_call($value);
-					}
-					
-				}		
-		}
+
+		if(isset($this->_f) && is_array($this->_f))
+			foreach($this as $key=>$value){
+					// try to use sleep more...
+				if(is_string($value))
+					if(trim($value) != '')
+						if(in_array($key,$this->_f) && !in_array($key,$restricted_template_fields)){
+							$html_call = "div__$key";
+							$template .= "\t\t".htmler::$html_call($value);
+					}		
+			}
 		// add other stuff and formatting inside of $this->body mostly...
 		// set content to a mashup of the array's parameters create function that generates html...
-		$html_call = "div+post";
+//		$html_call = "div+post";
 		if($template != ''){
-			$template = "\t\t<div id='page'>\n".htmler::$html_call($template) . "\n</div>";
-			$this->body = $template;
+		// use class introspection to handle tabs and newlines?
+			$this->body = htmler::div__page( htmler::div__post($template) ) ;
 		}
 		// css code
-		$this->head .= "<link rel='stylesheet' href='style.css'>\n\t";
+		$this->head .= htmler::link__stylesheet('style.css');
 		return parent::__toString();
 	}
 }
+// stores class to apc, could also store/retrieve from apache couch (and also load back into apc fetch)
+// this opens up possiblities of modifying web applications/field control to modifying entries in a couch db
 
 $blog = apc_fetch('blog');
 // simple one line APC check/setter
