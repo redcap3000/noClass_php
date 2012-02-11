@@ -1,6 +1,6 @@
 <?php
 require('couchCurl.php');
-
+require('htmler.php');
 $time = microtime(); 
 $time = explode(" ", $time); 
 $time = $time[1] + $time[0]; 
@@ -279,42 +279,6 @@ class noClass_html{
 
 
 */
-class htmler{
-	public static function __callStatic($name,$arguments){
-
-		$name = explode('__',$name,2);
-		
-		if($name[0] == 'link'){
-			// do for link__rel('href','anything else inside the quotes....)
-			return self::html_element($name[0],'rel=" '.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
-		}
-	// some basic container types that can fit the mold.. might want to check out my own
-	// html5 core
-		elseif(in_array($name[0],array( 'div','ul','li','ol','table'))) {
-			$count = (int) count($name);
-		// use switch statement for this ..
-			if($count == 3) 
-				return self::html_container($arguments[0],$name[1],$name[2],$name[0]);
-			// support class only designations
-			if($count == 2)
-				return self::html_container($arguments[0],$name[1],NULL,$name[0]);
-			if($count == 1)
-				return self::html_container($arguments[0],NULL,NULL,$name[0]);
-		}
-	}
-	
-	private function html_container($value,$class=NULL,$id=NULL,$container='div'){
-		// probably best with div or ul/ol etc.	
-		return "\n<$container ".trim(($class ==NULL?'':" class='$class' ") . ($id == NULL?'': " id='$id' ")).">\n\t$value\n</$container>\n";
-	}
-	
-	
-	// allows almost complete override of how an element is displayed ? for self closing tags like <style > and others ? 
-	private function html_element($element,$inner){
-		return "\n<$element $inner>";
-	}
-
-}
 
 class blog extends noClass_html{
 
@@ -369,10 +333,10 @@ class blog extends noClass_html{
 }
 // stores class to apc, could also store/retrieve from apache couch (and also load back into apc fetch)
 // this opens up possiblities of modifying web applications/field control to modifying entries in a couch db
-
-$blog = apc_fetch('blog');
+$blog = new blog();
+//$blog = apc_fetch('blog');
 // simple one line APC check/setter
-!$blog && $blog = new blog AND apc_add('blog',$blog);
+//!$blog && $blog = new blog AND apc_add('blog',$blog);
 
 echo $blog();
 
