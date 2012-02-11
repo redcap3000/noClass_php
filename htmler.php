@@ -48,16 +48,17 @@ class htmler{
 		$name = explode('__',$name,3);
 		$name_count = (int) count($name);
 		
-		if($name_count == 1){
-		// more than likely a container (like making a quick div, or ul, li, etc)
-			return self::html_container($arguments[0],NULL,NULL,$name[0]);
-		}elseif($name[0] == 'link'){
+		if($name[0] == 'link'){
 		// theres a few other types that use 'html' element' think all things meta or in the head
 			// do for link__rel('href','anything else inside the quotes....)
 			return self::html_element($name[0],'rel=" '.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
+		}elseif($name_count == 1){
+		// more than likely a container (like making a quick div, or ul, li, etc)
+			return self::html_container($arguments[0],NULL,NULL,$name[0]);
 		}
 		// some basic container types that can fit the mold.. might want to check out my own html5 core
-		elseif(in_array($name[0],array( 'div','ul','li','ol','table'))) {
+		//elseif(in_array($name[0],array( 'div','ul','li','ol','table'))) {
+		else{
 			switch ($name) {
 				case 2:
 					// div__#div class#__#div id#(-inner-)

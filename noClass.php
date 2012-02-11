@@ -71,6 +71,78 @@ class noClass_html{
 	public $body;
 	public $footer;
 
+	function load_template($array,$key=false){
+	
+	/* Simply call $noClass_object($array) on a class that already has 'non' default values...
+		still needs some testing but at least the iterative nesting works!
+		// container /template example
+		$container = array(	'head' => 	array('link__stylesheet'=>'main.css') ,
+							'body'=> 	array('div__page'=> 
+												array('div__post' =>
+													array( 'post_title'=> 'h2__' , 'category'=>'h3__','publisher'=>'h4__','post' => 'div__','post_tags'=> 'div__' ) 
+													) 
+												)	 
+							);
+
+
+	
+		IDEA :
+		
+		Define 'templates' (or views) for an array by processing an array structure which simulates
+		the noClass_html class to call htmler to build pages. 
+		
+		The template substitutes valid field names when encountered in associtatve array values
+		and renders them according to their set values which are coded htmler syntax calls (method directives
+		seperated by double underscores)
+	
+	
+	 returns an array with a structure, if a key name matches that of a 
+	 parameter in the class then we can use the value to define how the object is created
+	 with htmler
+	 if the keyname is a htmler call (denoted by a sucessful counting of explode (__) then we implant
+	 the result beneath itself (to create a recursive 'display' function)
+	 why not just store straight up ? well its easier to do things with arrays if we can access them
+	 via keys, or if we want to seperate the model from the view (i.e. reuse code with other parameter names
+	 without editing the 'syntax' line) It just saves a step of doing explodes or string functions
+	 to organize things into arrays
+	 which most developers do anyway.
+	
+	*/
+	
+		if(is_array($array)){
+		
+			if(strpos($key,'__')){
+			// Handles iterative operations to properly generate the nested
+			// HTML (when structured appropriately) for valid values..
+			// I.e. reduces structures like body->page->post->post_title
+			// body->page = string(post,post_title);
+				$html_call = $key;
+				$r = $this->load_template($array);
+				foreach($r as $iField=>$iValue){
+					if($iValue != '')
+						$r2[$key] .= $iValue;				
+				}
+				return htmler::$key(implode($r2));
+			}
+		
+			foreach($array as $key2=>$array2){
+				$r[$key2] =  $this->load_template($array2,$key2) ;	
+			}
+		}
+		elseif($key !=false && $this->$key != false){
+		// get ready for htmler structure, which will set the field name to the 
+		// could accept another parameter to determine how the field name is used within the created htmler
+		// structure return HTML ?? paired with the object's key value as a return param ??
+		 // return htmler::
+			$html_call = "$array"."$key";
+			return htmler::$html_call($this->$key);
+		}elseif(is_string($array) && strpos($key,'__') ){
+			$html_call = $key;
+			return htmler::$html_call($array);
+		}
+		return $r;	
+	}
+
 
 	public function __invoke($_id=false,$action=false){
 	// this invoke function is more complicated than it needs to be ..
@@ -212,79 +284,11 @@ class noClass_html{
 		return array_unique($valid);		
 	}
 	
-	/*
-	
-		Haven't used these yet ... but makes for more 'enforced' design patterns.
-		More stuff needs to be written to properly handle dynamically defined 
-		array parameters like '_r' and '_f'. This also wont jive well with classes
-		that mix defined parameters and ones that are created from an external source.
-		
-		It would best be advisable to not mix 'dynamic loaded' classes, but I've done it
-		plenty of times without real ill effects. The processing time could be improved
-		but the memory use is outstanding.
-		
-		These will come into use when users begin adding parameters to classes without
-		defining them first in the class as they set/get/check them.
-		
-		Basically the pattern shown on php.net was to store these parameters to another array.
-		
-		I take it a step further and add a value entry for it to $this->_f. I suppose we do not
-		need to set the value to an extra array? Or can we let it do what it does normally (set the value to
-		the param we request)
-		
-		But I do see the advantage of this pattern to track 'external' changes to a class. And
-		in the case of dynamically loaded classes, we can use it to 'revert' to its default, although
-		we may still be able to do this with a dynamically loaded class.
-		
-		These dont work in 'edit' mode... disabling them until I actually implement it.
-	*/
-
-/*
-	public function __set($name,$value){
-	// __set() is run when writing data to inaccessible properties.
-	// add the parameter to $_f ;
-//	PHP Notice:  Indirect modification of overloaded property blog::$_se has no effect 	
-//		$this->data[$name] = $value;
-		if(isset($this->_f)) $this->_f []= $name;
-		else
-			$this->_f = array($name);
-	}
-	
-	public function __isset($name){
-		return isset($this->data[$name]);
-	}
-	
-
-	public function __get($name){
-		if(isset($this->data))
-			if(array_key_exists($name,$this->data))
-				return $this->data[$name];
-		
-	}
-	
-	public function __unset($name){
-		unset($this->data[$name]);
-		unset($this->_f[$name]);
-		if(isset($this->_r[$name])) unset($this->_r);
-	}
-	*/
-}
-
-/* 	Quick class to demonstrate how to use __callStatic to use an object method call to 
-	 set parameters through the use of strings ... so to use '+' as a seperator you must
-	 define each method call as a string in another variable
-	 $static_call = "div+my_class+my_id";
-	 $content = 'Stuff for inside the div';
-	 htmler::$static_call($content);
-
-
-*/
-
 class blog extends noClass_html{
 
 	public $_f = array('_id','post_title','category','post_type','post_tags','publisher','summary','content','status');
 	public $_r = array('_id','post_title','post_type','publisher','content','status');
-	public $post_title;
+	public $post_title ='generic post title';
 
 	public $category;
 	public $parent_category;
@@ -333,12 +337,17 @@ class blog extends noClass_html{
 }
 // stores class to apc, could also store/retrieve from apache couch (and also load back into apc fetch)
 // this opens up possiblities of modifying web applications/field control to modifying entries in a couch db
+
+
 $blog = new blog();
+//$blog('test');
+print_r($blog->load_template($container));
+
 //$blog = apc_fetch('blog');
 // simple one line APC check/setter
 //!$blog && $blog = new blog AND apc_add('blog',$blog);
 
-echo $blog();
+//echo $blog();
 
 $time = microtime(); 
 $time = explode(" ", $time); 
