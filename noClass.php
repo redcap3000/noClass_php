@@ -143,6 +143,10 @@ class noClass_html{
 		return $r;	
 	}
 
+	public function __construct($container){
+	// consider moving the 'action' here to do 'edit' 'new record' actions ..
+		$this->_container = $container;	
+	}
 
 	public function __invoke($_id=false,$action=false){
 	// this invoke function is more complicated than it needs to be ..
@@ -271,7 +275,20 @@ class noClass_html{
 		if(isset($this->editor)){
 			$this->body .= '<div id="editor">'.$this->editor."</div>";
 		}
-		return "\n<!doctype html>\n<html>\n\t<head>\n\t$this->head</head>\n\t<body>\n\t\t$this->body\n\t<footer>\n\t\t$this->footer\n\t\t</footer>\n\t</body>\n</html>";
+		
+		
+		if($this->_container){
+			$html = '';
+			 foreach( $this->load_template($this->_container) as $loc=>$value )
+			 		$html .= htmler::$loc(implode($value));
+			 
+			 
+			 return "\n<!doctype html>".($html)."\n</html>";
+		
+		}
+		
+		
+		return "\n<!doctype html>\n<html>\n\t$this->head \n\t<body>\n\t\t$this->body\n\t<footer>\n\t\t$this->footer\n\t\t</footer>\n\t</body>\n</html>";
 	}
 	
 	public function __sleep(){
@@ -283,6 +300,7 @@ class noClass_html{
 				
 		return array_unique($valid);		
 	}
+}
 	
 class blog extends noClass_html{
 
@@ -308,30 +326,32 @@ class blog extends noClass_html{
 
 
 	public function __toString(){
+//		die(print_r($this));
+	
 		$this->title .= $this->post_title;
 		$template = '';
 		// this might not be a terrible _t (restricted template field ? )
-		$restricted_template_fields = array('_id','_rev','post_type','status');
+//		$restricted_template_fields = array('_id','_rev','post_type','status');
 
-		if(isset($this->_f) && is_array($this->_f))
-			foreach($this as $key=>$value){
+//		if(isset($this->_f) && is_array($this->_f))
+//			foreach($this as $key=>$value){
 					// try to use sleep more...
-				if(is_string($value))
-					if(trim($value) != '')
-						if(in_array($key,$this->_f) && !in_array($key,$restricted_template_fields)){
-							$html_call = "div__$key";
-							$template .= "\t\t".htmler::$html_call($value);
-					}		
-			}
+//				if(is_string($value))
+//					if(trim($value) != '')
+//						if(in_array($key,$this->_f) && !in_array($key,$restricted_template_fields)){
+//							$html_call = "div__$key";
+//							$template .= "\t\t".htmler::$html_call($value);
+//					}		
+//			}
 		// add other stuff and formatting inside of $this->body mostly...
 		// set content to a mashup of the array's parameters create function that generates html...
 //		$html_call = "div+post";
-		if($template != ''){
+//		if($template != ''){
 		// use class introspection to handle tabs and newlines?
-			$this->body = htmler::div__page( htmler::div__post($template) ) ;
-		}
+//			$this->body = htmler::div__page( htmler::div__post($template) ) ;
+//		}
 		// css code
-		$this->head .= htmler::link__stylesheet('style.css');
+//		$this->head .= htmler::link__stylesheet('style.css');
 		return parent::__toString();
 	}
 }
@@ -339,15 +359,32 @@ class blog extends noClass_html{
 // this opens up possiblities of modifying web applications/field control to modifying entries in a couch db
 
 
-$blog = new blog();
-//$blog('test');
-print_r($blog->load_template($container));
+// put the container here to simplify syntax for extra libraries ...  (but don't load it unil a record is loaded or to_string ??)
+
+
+	$container = array(	'head' => 	array('link__stylesheet'=>'main.css') ,
+							'body'=> 	array('div__page'=> 
+												array('div__post' =>
+													array( 'post_title'=> 'h2__' , 'category'=>'h3__','publisher'=>'h4__','post' => 'div__','post_tags'=> 'div__' ) 
+													) 
+												)	 
+							);
+
+$blog = new blog($container);
+print_r($blog);
+// change invoke to allow a 'container' ? if container is_array 
+// then load the template ? ?
+
+	
+
+echo $blog('test');
+//print_r($blog->load_template($container));
 
 //$blog = apc_fetch('blog');
 // simple one line APC check/setter
 //!$blog && $blog = new blog AND apc_add('blog',$blog);
 
-//echo $blog();
+//echo $blog('test');
 
 $time = microtime(); 
 $time = explode(" ", $time); 
