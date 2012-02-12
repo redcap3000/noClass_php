@@ -51,7 +51,7 @@ class htmler{
 		if($name[0] == 'link'){
 		// theres a few other types that use 'html' element' think all things meta or in the head
 			// do for link__rel('href','anything else inside the quotes....)
-			return self::html_element($name[0],'rel=" '.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
+			return self::html_element($name[0],'rel="'.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
 		}elseif($name_count == 1){
 		// more than likely a container (like making a quick div, or ul, li, etc)
 			return self::html_container($arguments[0],NULL,NULL,$name[0]);
@@ -74,12 +74,13 @@ class htmler{
 	
 	private function html_container($value,$class=NULL,$id=NULL,$container='div'){
 		// probably best with div or ul/ol etc.	
-		return "\n<$container ".trim(($class ==NULL?'':" class='$class' ") . ($id == NULL?'': " id='$id' ")).">\n\t$value\n</$container>\n";
+		return "\n<$container".($class ==NULL?'':" class='$class'") . ($id == NULL?'': " id='$id'").">\n\t$value\n</$container>\n";
 	}
 	
 	// allows almost complete override of how an element is displayed ? for self closing tags like <style > and others ? 
-	private function html_element($element,$inner,$close_slash=false){
-		return "\n<$element $inner". (!$close_slash?'':'/') .'>' ;
+	private function html_element($element,$inner='',$close_slash=false){
+	// extra space after element not sure where its coming from... trim is useless..
+		return trim("\n<$element".(!$inner?'':" $inner"). (!$close_slash?'':'/') .'>' );
 	}
 
 }
