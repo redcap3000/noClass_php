@@ -276,18 +276,14 @@ class noClass_html{
 			$this->body .= '<div id="editor">'.$this->editor."</div>";
 		}
 		
-		
 		if($this->_container){
 			$html = '';
 			 foreach( $this->load_template($this->_container) as $loc=>$value )
 			 		$html .= htmler::$loc(implode($value));
-			 
-			 
+			 // make doctype__html()
 			 return "\n<!doctype html>".($html)."\n</html>";
 		
 		}
-		
-		
 		return "\n<!doctype html>\n<html>\n\t$this->head \n\t<body>\n\t\t$this->body\n\t<footer>\n\t\t$this->footer\n\t\t</footer>\n\t</body>\n</html>";
 	}
 	
@@ -306,7 +302,7 @@ class blog extends noClass_html{
 
 	public $_f = array('_id','post_title','category','post_type','post_tags','publisher','summary','content','status');
 	public $_r = array('_id','post_title','post_type','publisher','content','status');
-	public $post_title ='generic post title';
+	public $post_title;
 
 	public $category;
 	public $parent_category;
@@ -326,43 +322,19 @@ class blog extends noClass_html{
 
 
 	public function __toString(){
-//		die(print_r($this));
-	
 		$this->title .= $this->post_title;
-		$template = '';
-		// this might not be a terrible _t (restricted template field ? )
-//		$restricted_template_fields = array('_id','_rev','post_type','status');
-
-//		if(isset($this->_f) && is_array($this->_f))
-//			foreach($this as $key=>$value){
-					// try to use sleep more...
-//				if(is_string($value))
-//					if(trim($value) != '')
-//						if(in_array($key,$this->_f) && !in_array($key,$restricted_template_fields)){
-//							$html_call = "div__$key";
-//							$template .= "\t\t".htmler::$html_call($value);
-//					}		
-//			}
-		// add other stuff and formatting inside of $this->body mostly...
-		// set content to a mashup of the array's parameters create function that generates html...
-//		$html_call = "div+post";
-//		if($template != ''){
-		// use class introspection to handle tabs and newlines?
-//			$this->body = htmler::div__page( htmler::div__post($template) ) ;
-//		}
-		// css code
-//		$this->head .= htmler::link__stylesheet('style.css');
 		return parent::__toString();
 	}
 }
-// stores class to apc, could also store/retrieve from apache couch (and also load back into apc fetch)
-// this opens up possiblities of modifying web applications/field control to modifying entries in a couch db
 
 
-// put the container here to simplify syntax for extra libraries ...  (but don't load it unil a record is loaded or to_string ??)
+// Here is a container for the blog. This structure can easily be stored in as json and modified
+// and reloaded. Keys other than 'head' 'body' are either method calls for HTMLER (anything with
+// a double underscore) and values are strings, keys that are present in the object (non htmler calls)
+// are formatted according to the paired value (which is a htmler call)
 
 
-	$container = array(	'head' => 	array('link__stylesheet'=>'main.css') ,
+$container = array(	'head' => 	array('link__stylesheet'=>'main.css') ,
 							'body'=> 	array('div__page'=> 
 												array('div__post' =>
 													array( 'post_title'=> 'h2__' , 'category'=>'h3__','publisher'=>'h4__','post' => 'div__','post_tags'=> 'div__' ) 
@@ -371,14 +343,12 @@ class blog extends noClass_html{
 							);
 
 $blog = new blog($container);
-print_r($blog);
+
 // change invoke to allow a 'container' ? if container is_array 
 // then load the template ? ?
 
-	
 
-echo $blog('test');
-//print_r($blog->load_template($container));
+echo $blog();
 
 //$blog = apc_fetch('blog');
 // simple one line APC check/setter
