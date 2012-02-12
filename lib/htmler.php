@@ -37,8 +37,14 @@
 	// others to follow shortly
 
 	echo htmler::link__stylesheet('style.css');
-	
 
+*Supports input types	
+
+	echo htmler::input__text__myInput('A value');
+*A link syntax
+
+	echo htmler::a('http://here.com','Here','title="here"');
+				
 */
 
 class htmler{
@@ -46,35 +52,19 @@ class htmler{
 
 	public static function __callStatic($name,$arguments){
 		$name = explode('__',$name,3);
-		$name_count = (int) count($name);
-		
-		if($name[0] == 'link'){
+		// to do avoid all the returns ... funnel all calls into one or max two calls ... especially for the swtiches ..
+		if(in_array($name[0],array('a','link','input') ))
 		// theres a few other types that use 'html' element' think all things meta or in the head
-			// do for link__rel('href','anything else inside the quotes....)
-			return self::html_element($name[0],'rel="'.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL));
-		}elseif($name_count == 1){
-		// more than likely a container (like making a quick div, or ul, li, etc)
-			return self::html_container($arguments[0],NULL,NULL,$name[0]);
-		}
-		// some basic container types that can fit the mold.. might want to check out my own html5 core
-		//elseif(in_array($name[0],array( 'div','ul','li','ol','table'))) {
-		else{
-			switch ($name) {
-				case 2:
-					// div__#div class#__#div id#(-inner-)
-					return self::html_container($arguments[0],$name[1],NULL,$name[0]);
-					break;
-				default:
-					// div__#div class#__#div id#(-inner-)
-					return self::html_container($arguments[0],$name[1],$name[2],$name[0]);
-					break;	
-			}	
-		}
+			// a(href,inner link, optional link directives)
+			if($name[0] == 'a')
+				$extra = " href='$arguments[0]'" . (!isset($arguments[2])?'' : " $arguments[2]") AND $arguments[0] = $arguments[1];
+			else
+				return self::html_element($name[0], ($name[0] == 'link' ? 'rel="'.$name[1].'" href="'.$arguments[0].'" ' . (isset($arguments[1])? "$arguments[1]" :NULL) : "id='$name[2]' type='$name[1]'".(isset($arguments[0])? " value='$arguments[0]'" :NULL) . (isset($arguments[1])? " $arguments[1]" :NULL) ) );
+		return self::html_container($arguments[0],(!isset($name[1]) ? NULL : $name[1]),(!isset($name[2]) ? NULL : $name[2]),$name[0],(!isset($extra) ? NULL :$extra ));
 	}
 	
-	private function html_container($value,$class=NULL,$id=NULL,$container='div'){
-		// probably best with div or ul/ol etc.	
-		return "\n<$container".($class ==NULL?'':" class='$class'") . ($id == NULL?'': " id='$id'").">\n\t$value\n</$container>\n";
+	private function html_container($value,$class=NULL,$id=NULL,$container='div',$inner=NULL){
+		return "\n<$container".($class ==NULL?'':" class='$class'") . ($id == NULL?'': " id='$id'") . ($inner==NULL?'':$inner).">$value</$container>\n";
 	}
 	
 	// allows almost complete override of how an element is displayed ? for self closing tags like <style > and others ? 
@@ -82,5 +72,4 @@ class htmler{
 	// extra space after element not sure where its coming from... trim is useless..
 		return trim("\n<$element".(!$inner?'':" $inner"). (!$close_slash?'':'/') .'>' );
 	}
-
 }
