@@ -1,7 +1,6 @@
 <?php
 require('couchCurl.php');
 require('htmler.php');
-
 /*
 	noClass framework
 	Ronaldo Barbachano
@@ -58,6 +57,11 @@ require('htmler.php');
 	
 */
 
+// this does something to the child class and returns it
+// as the function in the abstract class is called in child class
+
+
+
 class noClass_html{
 	public $_f;
 	public $_r;
@@ -68,43 +72,6 @@ class noClass_html{
 	public $footer;
 
 	function load_template($array,$key=false){
-	
-	/* Simply call $noClass_object($array) on a class that already has 'non' default values...
-		still needs some testing but at least the iterative nesting works!
-		// container /template example
-		$container = array(	'head' => 	array('link__stylesheet'=>'main.css') ,
-							'body'=> 	array('div__page'=> 
-												array('div__post' =>
-													array( 'post_title'=> 'h2__' , 'category'=>'h3__','publisher'=>'h4__','post' => 'div__','post_tags'=> 'div__' ) 
-													) 
-												)	 
-							);
-
-
-	
-		IDEA :
-		
-		Define 'templates' (or views) for an array by processing an array structure which simulates
-		the noClass_html class to call htmler to build pages. 
-		
-		The template substitutes valid field names when encountered in associtatve array values
-		and renders them according to their set values which are coded htmler syntax calls (method directives
-		seperated by double underscores)
-	
-	
-	 returns an array with a structure, if a key name matches that of a 
-	 parameter in the class then we can use the value to define how the object is created
-	 with htmler
-	 if the keyname is a htmler call (denoted by a sucessful counting of explode (__) then we implant
-	 the result beneath itself (to create a recursive 'display' function)
-	 why not just store straight up ? well its easier to do things with arrays if we can access them
-	 via keys, or if we want to seperate the model from the view (i.e. reuse code with other parameter names
-	 without editing the 'syntax' line) It just saves a step of doing explodes or string functions
-	 to organize things into arrays
-	 which most developers do anyway.
-	
-	*/
-	
 		if(is_array($array)){
 		
 			if(strpos($key,'__')){
@@ -120,7 +87,7 @@ class noClass_html{
 				}
 				return htmler::$key(implode($r2));
 			}
-		
+			// use array walk ? 
 			foreach($array as $key2=>$array2){
 				$r[$key2] =  $this->load_template($array2,$key2) ;	
 			}
@@ -145,17 +112,9 @@ class noClass_html{
 	}
 
 	public function __invoke($_id=false,$action=false){
-	// this invoke function is more complicated than it needs to be ..
-	// this is what it does : basically allows one invoke function to do
-	// many things - display a record $object('record_id')
-	// create /edit a new record $object()
-	// edit an existing record $object('record_id','edit');
-		if(!$_id && !$action && isset($_SERVER['REQUEST_METHOD']) ){
-			if($_SERVER['REQUEST_METHOD'] != "POST" )
-		// a little cleanup mostly for debugging...
-			unset($_POST);
-		}
-	
+		// save the container, sometimes gets unset with toSelf function.. or some other recursion..
+		$container = $this->_container;
+		// load the head to include css etc. so the 'preview' works properly
 		if($_id != false){
 			$r = $this->getRecord($_id);
 			// if this is false then we need to do something to prevent showing an empty structure?
@@ -164,9 +123,15 @@ class noClass_html{
 				return $this;
 			}
 			
-		}elseif($_id == false && $action == false && !isset($_POST['_id']) ){
+		}elseif($_id == false && $action != false ){
 			if(!class_exists('poform')) require('poform.php');
 			$this->editor = poform::auto($this);
+			// load the head to include stylesheets in the container
+			// for when the record cannot be inserted (due to invalid fields)
+			foreach($container['head'] as $key=>$value){
+				$this->head .= htmler::$key($value); 
+			}
+			
 			return($this);
 		}elseif(!$action && $_id){ 
 			$this->arrayToSelf($r);
@@ -185,12 +150,10 @@ class noClass_html{
 		}elseif($action != 1){
 		// server request method is post ...
 		// force an insert with whatever keys exist ? this may not be nessary
-			if(isset($r['_rev'])){ 
-	
+			if(isset($r['_rev'])){ 	
 				$_POST['_rev'] = $r['_rev'];
 				// probably dont need this ..
 				unset($_POST['_r']);
-			
 			}
 			$no_update = false;
 		
@@ -230,16 +193,6 @@ class noClass_html{
 					// puts just fine ... how to then return the proper values ? 
 					return $this($_POST['_id'],1);
 					}
-				// operate on a clone so we can retain the field attributes that get replaced when using $this($_id),
-				// and properly populate the input fields ;
-				//	$this->editor = poform::auto(get_class_vars(get_called_class()));
-
-				// this DOESNT work ... better to clone 
-				
-				// maybe better to use get_class_vars and then intesect with $this ?
-					$this_2 = clone $this;
-					$this->editor = poform::auto($this_2);
-					return $this($_id);
 					
 				}else{
 				// show errors and return $this ..
@@ -248,13 +201,21 @@ class noClass_html{
 		}
 		}
 		// hmm probably make a form ... ?
+		
+		$this->_container = $container;
 		if($action != false){
-		// weird hack to get the record to display in the editor
-			!isset($this->editor) AND $this->editor = poform::auto($this);
+		// weird hack to get the record to display in the editor (as you are editing it, and 
+		// as new records are created to automatically go into 'edit' mode until the page is reloaded
+		// is this call needed ? sometimes... in the event that we are attempting to not include a field
+		// in an existing record that is required
 			$this->arrayToSelf($r);
 			$called_class = get_called_class();
-			$called_class = new $called_class();
-			echo $called_class($_id);
+			$called_class = new $called_class($container );
+			$this->editor = poform::auto($called_class);
+			$called_class = $called_class($_id);
+			$called_class->editor = $this->editor;
+			$called_class->_container = $container;
+			return $called_class;
 		}
 		return $this;
 	}
@@ -267,20 +228,24 @@ class noClass_html{
 			$this->$k = $v;
 	}
 	public function __toString(){
-		$this->head .= '<title>'.$this->title.'</title>';
-		if(isset($this->editor)){
-			$this->body .= '<div id="editor">'.$this->editor."</div>";
-		}
-		
-		if($this->_container){
+	
+		$this->head .= (isset($this->title)?'<title>'.$this->title.'</title>' : '');
+		// container disappears ...
+		if(isset($this->_container) && is_array($this->_container) ){
 			$html = '';
 			 foreach( $this->load_template($this->_container) as $loc=>$value )
+			 // leave body open...
 			 		$html .= htmler::$loc(implode($value));
 			 // make doctype__html()
-			 return "\n<!doctype html>".($html)."\n</html>";
+			 return "\n<!doctype html>".($html). (isset($this->editor) ? htmler::div__editor($this->editor) : ''). "\n</html>";
 		
 		}
-		return "\n<!doctype html>\n<html>\n\t$this->head \n\t<body>\n\t\t$this->body\n\t<footer>\n\t\t$this->footer\n\t\t</footer>\n\t</body>\n</html>";
+		if(isset($this->editor)){
+			$this->body .= htmler::div__editor($this->editor);
+		}
+
+		
+		return "\n<!doctype html>\n<html>\n\t$this->head \n\t<body>\n\t\t$this->body\n\t".(isset($this->footer) ? "<footer>\n\t\t$this->footer\n\t\t</footer>":'')."\n\t</body>\n</html>";
 	}
 	
 	public function __sleep(){
@@ -293,6 +258,3 @@ class noClass_html{
 		return array_unique($valid);		
 	}
 }
-	
-
-

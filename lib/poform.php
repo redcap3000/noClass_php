@@ -31,7 +31,7 @@ class poform{
 		foreach($object as $a=>$b)
 			$r .= ($a != 'missing'? (is_array($b) || is_object($b)?self::make($b,true): $b) :'');
 		// should make sure that we have actual inputs before rendering a 'form' (incase an object is replaced with purely html values...)
-		return ($i == false && $r != ''  ? "\n<form action=\"\" method=\"POST\">\n<fieldset>\t$r\n</fieldset>". self::make_input('submit','Go') . 
+		return ($i == false && $r != ''  ? "\n<form action=\"\" method=\"POST\">\n<fieldset>\t$r\n</fieldset>". htmler::input__submit('Go') . 
 		"\n</fieldset>\n</form>\n":($i == true?"\n\t$r\n":''));
 		}
 	}
@@ -56,17 +56,16 @@ class poform{
 							unset($inner);
 					foreach(array_filter($a) as $key=>$value)
 							$a[$key] = " $key='$value'";				
-					return    '<input' . implode($a,'') .  (isset($inner) ? ($inner != NULL? $inner : NULL) :NULL) . '/>' ;		
+					return    htmler::input( NULL , (isset($a) && is_array($a) ? implode($a,'') : '') .    ($inner != NULL? $inner : NULL) );		
 				break;
 			case 'html':
 				return $value;
 				break;
 			case 'submit':
-				return '<input type ="submit" value ="' . $name . '">';
+				return htmler::input__sumbit($name);
 				break;
 			case 'textarea':
-//				die('this:'.print_r($type . $name . $inner . $value . $placeholder));
-				return '<textarea name="'.$name.'"'. "$inner>$_POST[$name]</textarea>";
+				return htmler::textarea((isset($_POST[$name]) ?$_POST[$name]:'') , 'name="'.$name.'"'. ($inner?$inner:'') );
 				break;
 		}	
 	}
@@ -96,7 +95,7 @@ class poform{
 	
 	private static function labeler($field_name,$required=NULL){
 		isset($_SERVER['REQUEST_METHOD']) AND $_SERVER['REQUEST_METHOD'] != "POST" AND $required = NULL;
-		return  "<label for='$field_name'>".  ucwords(str_replace('_',' ',$field_name)).($required == NULL ? '' : ( in_array($field_name,$required)? (!isset($_POST[$field_name]) || $_POST[$field_name] == '' ? '<b class="req">*required</b>' : '' ) : NULL    ) ) . "</label>\n"  ;
+		return  htmler::label(ucwords(str_replace('_',' ',$field_name)).($required == NULL ? '' : ( in_array($field_name,$required)? (!isset($_POST[$field_name]) || $_POST[$field_name] == '' ? '<b class="req">*required</b>' : '' ) : NULL    ) ) ,"for='$field_name'");
 	}
 
 // make a special function for fields that need to be 'confirmed' ? (right now mainly for email/passwords)
@@ -160,7 +159,7 @@ class poform{
 					else
 						$r[$x] = self::load($y,$x,$x,$required);
 						
-		return (isset($r) ? $r : $object);
+		return (isset($r) ? array_reverse($r) : $object);
 		}
 }
 

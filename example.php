@@ -26,7 +26,7 @@ array('head' =>
 	                            array( 'post_title'=> 'h2__' ,
 					   'category'=>'h3__',
 					   'publisher'=>'h4__',
-					   'post' => 'div__',
+					   'content' => 'div__',
 					   'post_tags' => 'div__'
 					  )
                              )
