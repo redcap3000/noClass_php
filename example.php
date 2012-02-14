@@ -27,6 +27,7 @@ array('head' =>
 					   'category'=>'h3__',
 					   'publisher'=>'h4__',
 					   'content' => 'div__',
+					   'thumbnail_image'=> 'img__',
 					   'post_tags' => 'div__'
 					  )
                              )

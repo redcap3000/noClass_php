@@ -14,7 +14,31 @@ to do ::
  in 'tabular' format .. ? 
 
 implement '__to_string' ? in an object oriented fashion ? 
+
+	 For basic uploads, designate class parameters as 'file ' to use
+	couch DB stores the uploaded file name, and references IMAGE_DIR_LINK when displaying.
+	
+	To remove an image delete it from the field and 'save'. Image will remain in image directory...
+	Re-upload as desired.
+	
+	Filenames that are identical and existing will set the field name to that file.
+	
+	Uncomment below and provide with directory locations and appropriate permissions (755(might work) or 777 ..)
+	
 */
+
+// define('IMAGE_DIR','/var/www/htdocs/website.net/uploads/img/');
+// a 'truncated' directory link for public facing URLS/links etc.
+// define('IMAGE_DIR_LINK','../uploads/img/');
+
+// simple check that loads basic script to handle file and validation etc. when a file is posted...
+// for now files are limited to jpg/gif/png but other types can be added to the valid field array
+
+//if(count($_FILES) > 0){
+//	include('poform_files.php');
+//}
+
+
 class poform{
 	public static function auto($object){
 	// automatically load/make and echo out an object  - makes for cleaner syntax
@@ -25,14 +49,11 @@ class poform{
 	public static function make($object,$i=false){
 	// prevents objects that have been 'cleared out' from rendering ...
 	if((int) count($object) > 0 ){
-	// .$_SERVER['PHP_SELF'] . $_SERVER['QUERY_STRING'] .
 		$r='';
-//		$r = ($i == false?"\n".'<form action="" method="POST">' . "\n<fieldset>" :'');
 		foreach($object as $a=>$b)
 			$r .= ($a != 'missing'? (is_array($b) || is_object($b)?self::make($b,true): $b) :'');
 		// should make sure that we have actual inputs before rendering a 'form' (incase an object is replaced with purely html values...)
-		return ($i == false && $r != ''  ? "\n<form action=\"\" method=\"POST\">\n<fieldset>\t$r\n</fieldset>". htmler::input__submit('Go') . 
-		"\n</fieldset>\n</form>\n":($i == true?"\n\t$r\n":''));
+		return ($i == false && $r != ''? htmler::form(htmler::fieldset($r) . htmler::input__submit('Go') ,'action="" method="POST" enctype="multipart/form-data"'):($i == true?"\n\t$r\n":''));
 		}
 	}
 	
@@ -77,7 +98,7 @@ class poform{
 		$field_name = trim($field_name);
 		if($type == 'number' || $type == 'range'){
 			// this needs work...
-			return "\t\t<fieldset>" .self::labeler($field_name) . 
+			return htmler::fieldset(self::labeler($field_name) )  . 
 			self::make_input($type,$field_name, (count($array) > 0? ($array[0] !== 0?" min='".$array[0]."' ":'') . (isset($array[1]) ?" max='".$array[1]."' ":'') . (isset($array[2])?" step='".$array[2]."' ":'') .  (isset($_POST[$field_name]) && $_POST[$field_name] != '' ? ' value="' . $_POST[$field_name].'"' : '')  : ''))."\n" . ( isset($_POST[$field_name])  && in_array(trim($field_name),$required)? ($_POST[$field_name] == '' ? '<b class="req">*required</b>' : '') : NULL    ) . '</fieldset>';	
 		}elseif(is_object($array) || is_array($array)){
 		// consider comparing isa against another array value to avoid two type checks ? 
@@ -102,7 +123,6 @@ class poform{
 // search the _POST object for a confirm ... and if the two fields dont match pass a special message to the labeler ?
 
 	public static function load($object,$id=NULL,$alt_id=NULL,$required=NULL){
-
 		isset($object->_f) || isset($object->_d) AND $a = $object->_f AND isset($object->_d) && is_array($a) AND $a = array_merge($a,$object->_d) AND $a [] = '_d';
 
 		isset($object->_r) && $required == NULL AND $_r = $object->_r AND $required = $_r;
@@ -114,34 +134,40 @@ class poform{
 					unset($object->$key);
 					}
 				}
+				
 		if(isset($object->_d) ){
 		// refers to 'hidden' variables, those used for forms or database identification
 			foreach($_POST as $k=>$v)
 				in_array($k,$object->_d) AND $object->$k = array("hidden:$k"=>array(''=>'hidden'));
 			unset($object->_d);
 		}
+
+		// special directive processing based on field type...
 		$select_array = array('select','checkbox','password','textarea','radio','sumbit','email','search','number','date','hidden','html');
+
 		if($id != NULL){
 			$id = explode(':',$id,2);
-			
 			count($id) == 2 AND $a_id = $id[1];
 			
 			$id = $id[0];
+
 			if($id == 'html') return($object);
 			if(is_array($object) && in_array($id ,$select_array )){
 				if($id == 'hidden') return self::make_input($id,$alt_id,NULL,$_POST[$alt_id]) ."\n";
 				return self::build_arr($object , ($a_id?$a_id:$alt_id),$id,$required);
 			}
 			elseif(!is_array($object) && !is_object($object)){
+				if((!isset($_POST[$id]) || $_POST[$id] == '') && $object=='file ')
+					$select_array [] = 'file';
 				foreach($select_array as $s)
 					if(!(strpos($object,"$s ") === false ))
 					// basically we have to make this do the block of code below .... hmmm
-						return "\t<fieldset>\n\t\t". self::labeler($id,$required) . self::make_input(trim($s) , $id,'', '' ,$s) . "\n\t</fieldset>\n";
+						return htmler::fieldset( self::labeler($id,$required) . self::make_input(trim($s) , $id,'', '' ,$s) ) ;
 
 			// try to use new labler syntax for the make_input ? 
-			return  "\t<fieldset>\n\t\t". self::labeler($id,$required) . 
-			"\t\t". self::make_input('text',$id,'',($object != '0' || $object != ''?  (isset($_POST[$id]) ?  $_POST[$id]:NULL)  :NULL), ucwords(str_replace('_',' ',$id)) ).
-			"\n\t</fieldset>\n";
+			return  htmler::fieldset( self::labeler($id,$required) . 
+			"\t\t". self::make_input( ($object != 'file'? 'text': 'file'  ),$id,'',($object != '0' || $object != ''?  (isset($_POST[$id]) ?  $_POST[$id]:NULL)  :NULL), ucwords(str_replace('_',' ',$id)) )
+			);
 			}
 		}
 		// Recurse... 

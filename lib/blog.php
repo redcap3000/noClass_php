@@ -2,7 +2,7 @@
 require('noClass.php');
 class blog extends noClass_html{
 
-	public $_f = array('_id','post_title','category','post_type','post_tags','publisher','summary','content','status');
+	public $_f = array('_id','post_title','category','post_type','post_tags','thumbnail_image','publisher','summary','content','status');
 	public $_r = array('_id','post_title','post_type','publisher','content','status');
 	public $post_title;
 
@@ -11,7 +11,7 @@ class blog extends noClass_html{
 	public $content = 'textarea ';
 
 	public $post_tags;
-	public $thumbnail_image;
+	public $thumbnail_image = 'file ';
 	public $front_image;
 	public $parent_post;
 	public $post_type = array('select:post_type '=> array('post'=>'Post','page'=>'Page'));
@@ -25,6 +25,8 @@ class blog extends noClass_html{
 
 	public function __toString(){
 		$this->title .= $this->post_title;
+		// Try to add via container..?
+		$this->thumbnail_image = IMAGE_DIR_LINK . $this->thumbnail_image;
 		return parent::__toString();
 	}
 }
