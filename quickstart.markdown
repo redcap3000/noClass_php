@@ -2,7 +2,7 @@
 
 ***To run the 'blog' example.php***
 
-1) Let noClass_html extend either 'couchCurl', for Apache Couch DB, or 'moniKey' for Mongo DB.
+1) Let noClass_html extend either 'couchCurl', for Apache Couch DB, or 'moniKey' for Mongo DB. (Require the library in use)
 
 2) Edit lib/interfaces.php - noSqlConfig - to define basic database settings (host).
 
