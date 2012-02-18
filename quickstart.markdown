@@ -1,16 +1,19 @@
 **NoClass Quickstart Guide**
 
-***To run the example***
+***To run the 'blog' example.php***
 
-1) Create a database called 'blog'.
+1) Let noClass_html extend either 'couchCurl', for Apache Couch DB, or 'moniKey' for Mongo DB.
 
-2) If your server is running at http://localhost:5984/ you can now insert records into your 'blog' database according to the example class.
+2) Edit lib/interfaces.php - noSqlConfig - to define basic database settings (host).
 
-If you are not running a Couch server at the above address;
+**Couch DB**
 
-3) Edit lib/couchCurl.php - at the top is a COUCH_HOST definition - provide your server's url here, including a username/password if needed (recommended for insertion on public facing servers.)
+3) If you are using CouchDB and do not have a database created as the same name of the class (in this case 'blog')
+then that will need to be created. CouchCurl uses 'exec' so you'll need the appropriate permissions and may want to take 
+a few precautions.
 
-As you create classes also create a same-named database on your couch server.
 
+**Mongo DB**
 
-
+3) If you already have the MongoDB php extension (and operating)...You're set....
+Load example.php and begin adding records.
