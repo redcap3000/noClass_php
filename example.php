@@ -26,7 +26,8 @@ array('head' =>
 	                            array( 'post_title'=> 'h2__' ,
 					   'category'=>'h3__',
 					   'publisher'=>'h4__',
-					   'post' => 'div__',
+					   'content' => 'div__',
+					   'thumbnail_image'=> 'img__',
 					   'post_tags' => 'div__'
 					  )
                              )
@@ -35,14 +36,19 @@ array('head' =>
 // Load Template
 $blog = new blog($container);
 
-// Load blog editor 
-echo $blog();
-
 
 //$blog = apc_fetch('blog');
 // simple one line APC check/setter
 //!$blog && $blog = new blog AND apc_add('blog',$blog);
 
+
+// Load blog editor Added some basic $_GET vars .. ?page=page_title and ?edit=page_title
+if(isset($_GET['page']) && $_GET['page'] != '')
+	echo $blog($_GET['page']);
+elseif(isset($_GET['edit']) && $_GET['edit'] != '')	
+	echo $blog($_GET['edit'],'edit');
+else
+	echo $blog();
 
 // Stats Reporting
 $time = microtime(); 

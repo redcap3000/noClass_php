@@ -58,6 +58,11 @@ require('htmler.php');
 	
 */
 
+// this does something to the child class and returns it
+// as the function in the abstract class is called in child class
+
+
+
 class noClass_html{
 	public $_f;
 	public $_r;
@@ -120,7 +125,7 @@ class noClass_html{
 				}
 				return htmler::$key(implode($r2));
 			}
-		
+			// use array walk ? 
 			foreach($array as $key2=>$array2){
 				$r[$key2] =  $this->load_template($array2,$key2) ;	
 			}
@@ -272,7 +277,7 @@ class noClass_html{
 			$this->body .= '<div id="editor">'.$this->editor."</div>";
 		}
 		
-		if($this->_container){
+		if(isset($this->_container) && is_array($this->_container) ){
 			$html = '';
 			 foreach( $this->load_template($this->_container) as $loc=>$value )
 			 		$html .= htmler::$loc(implode($value));
@@ -293,6 +298,3 @@ class noClass_html{
 		return array_unique($valid);		
 	}
 }
-	
-
-
