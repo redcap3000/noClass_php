@@ -16,7 +16,11 @@ to do ::
 implement '__to_string' ? in an object oriented fashion ? 
 
 	 For basic uploads, designate class parameters as 'file ' to use
+<<<<<<< HEAD
 	couch DB stores the uploaded file name, and references self::img_dir_link when displaying.
+=======
+	couch DB stores the uploaded file name, and references IMAGE_DIR_LINK when displaying.
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 	
 	To remove an image delete it from the field and 'save'. Image will remain in image directory...
 	Re-upload as desired.
@@ -27,6 +31,7 @@ implement '__to_string' ? in an object oriented fashion ?
 	
 */
 
+<<<<<<< HEAD
 
 
 
@@ -41,6 +46,21 @@ interface poformConfig{
 
 
 class poform implements poformConfig{
+=======
+// define('IMAGE_DIR','/var/www/htdocs/website.net/uploads/img/');
+// a 'truncated' directory link for public facing URLS/links etc.
+// define('IMAGE_DIR_LINK','../uploads/img/');
+
+// simple check that loads basic script to handle file and validation etc. when a file is posted...
+// for now files are limited to jpg/gif/png but other types can be added to the valid field array
+
+//if(count($_FILES) > 0){
+//	include('poform_files.php');
+//}
+
+
+class poform{
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 	public static function auto($object){
 	// all the issets is to avoid php notices. That would be fun. Make use of magic isset function to
 	// drive a program flow...
@@ -99,7 +119,11 @@ class poform implements poformConfig{
 		foreach($object as $a=>$b)
 			$r .= ($a != 'missing'? (is_array($b) || is_object($b)?self::make($b,true): $b) :'');
 		// should make sure that we have actual inputs before rendering a 'form' (incase an object is replaced with purely html values...)
+<<<<<<< HEAD
 		return ($i == false && $r != ''? noClass_html::form(noClass_html::fieldset($r) . noClass_html::input__submit('Go') ,'action="" method="POST" enctype="multipart/form-data"'):($i == true?"\n\t$r\n":''));
+=======
+		return ($i == false && $r != ''? htmler::form(htmler::fieldset($r) . htmler::input__submit('Go') ,'action="" method="POST" enctype="multipart/form-data"'):($i == true?"\n\t$r\n":''));
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 		}
 	}
 	
@@ -123,16 +147,27 @@ class poform implements poformConfig{
 							unset($inner);
 					foreach(array_filter($a) as $key=>$value)
 							$a[$key] = " $key='$value'";				
+<<<<<<< HEAD
 					return    noClass_html::input( NULL , (isset($a) && is_array($a) ? implode($a,'') : '') .    ($inner != NULL? $inner : NULL) );		
+=======
+					return    htmler::input( NULL , (isset($a) && is_array($a) ? implode($a,'') : '') .    ($inner != NULL? $inner : NULL) );		
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 				break;
 			case 'html':
 				return $value;
 				break;
 			case 'submit':
+<<<<<<< HEAD
 				return noClass_html::input__sumbit($name);
 				break;
 			case 'textarea':
 				return noClass_html::textarea((isset($_POST[$name]) ?$_POST[$name]:'') , 'name="'.$name.'"'. ($inner?$inner:'') );
+=======
+				return htmler::input__sumbit($name);
+				break;
+			case 'textarea':
+				return htmler::textarea((isset($_POST[$name]) ?$_POST[$name]:'') , 'name="'.$name.'"'. ($inner?$inner:'') );
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 				break;
 		}	
 	}
@@ -144,7 +179,11 @@ class poform implements poformConfig{
 		$field_name = trim($field_name);
 		if($type == 'number' || $type == 'range'){
 			// this needs work...
+<<<<<<< HEAD
 			return noClass_html::fieldset(self::labeler($field_name) )  . 
+=======
+			return htmler::fieldset(self::labeler($field_name) )  . 
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 			self::make_input($type,$field_name, (count($array) > 0? ($array[0] !== 0?" min='".$array[0]."' ":'') . (isset($array[1]) ?" max='".$array[1]."' ":'') . (isset($array[2])?" step='".$array[2]."' ":'') .  (isset($_POST[$field_name]) && $_POST[$field_name] != '' ? ' value="' . $_POST[$field_name].'"' : '')  : ''))."\n" . ( isset($_POST[$field_name])  && in_array(trim($field_name),$required)? ($_POST[$field_name] == '' ? '<b class="req">*required</b>' : '') : NULL    ) . '</fieldset>';	
 		}elseif(is_object($array) || is_array($array)){
 		// consider comparing isa against another array value to avoid two type checks ? 
@@ -162,7 +201,11 @@ class poform implements poformConfig{
 	
 	private static function labeler($field_name,$required=NULL){
 		isset($_SERVER['REQUEST_METHOD']) AND $_SERVER['REQUEST_METHOD'] != "POST" AND $required = NULL;
+<<<<<<< HEAD
 		return  noClass_html::label(ucwords(str_replace('_',' ',$field_name)).($required == NULL ? '' : ( in_array($field_name,$required)? (!isset($_POST[$field_name]) || $_POST[$field_name] == '' ? '<b class="req">*required</b>' : '' ) : NULL    ) ) ,"for='$field_name'");
+=======
+		return  htmler::label(ucwords(str_replace('_',' ',$field_name)).($required == NULL ? '' : ( in_array($field_name,$required)? (!isset($_POST[$field_name]) || $_POST[$field_name] == '' ? '<b class="req">*required</b>' : '' ) : NULL    ) ) ,"for='$field_name'");
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 	}
 
 // make a special function for fields that need to be 'confirmed' ? (right now mainly for email/passwords)
@@ -208,10 +251,17 @@ class poform implements poformConfig{
 				foreach($select_array as $s)
 					if(!(strpos($object,"$s ") === false ))
 					// basically we have to make this do the block of code below .... hmmm
+<<<<<<< HEAD
 						return noClass_html::fieldset( self::labeler($id,$required) . self::make_input(trim($s) , $id,'', '' ,$s) ) ;
 
 			// try to use new labler syntax for the make_input ? 
 			return  noClass_html::fieldset( self::labeler($id,$required) . 
+=======
+						return htmler::fieldset( self::labeler($id,$required) . self::make_input(trim($s) , $id,'', '' ,$s) ) ;
+
+			// try to use new labler syntax for the make_input ? 
+			return  htmler::fieldset( self::labeler($id,$required) . 
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 			"\t\t". self::make_input( ($object != 'file'? 'text': 'file'  ),$id,'',($object != '0' || $object != ''?  (isset($_POST[$id]) ?  $_POST[$id]:NULL)  :NULL), ucwords(str_replace('_',' ',$id)) )
 			);
 			}

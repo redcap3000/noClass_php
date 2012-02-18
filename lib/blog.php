@@ -21,6 +21,7 @@ class blog extends noClass_html{
 	public $status = array('select:status'=> array('draft'=>'Draft','published'=>'Published','private'=>'Private'  ) );
 
 	public function __toString(){
+<<<<<<< HEAD
 		if(!isset($this->category)) $this->categories();
 		if($this->_id != ''){
 			$this->title .= $this->post_title;
@@ -30,6 +31,11 @@ class blog extends noClass_html{
 				$this->thumbnail_image = self::img_dir_link . $this->thumbnail_image;
 		}
 		
+=======
+		$this->title .= $this->post_title;
+		// Try to add via container..?
+		$this->thumbnail_image = IMAGE_DIR_LINK . $this->thumbnail_image;
+>>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 		return parent::__toString();
 	}
 	

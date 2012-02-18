@@ -1,13 +1,15 @@
+/* @override http://www.mdocs.net/noClass_php/main.css */
+
 body,.page,#editor{
 	width: 60em;
 	font-family: "Lucida Grande", Lucida, Verdana, sans-serif;
 }
 
-#editor{
+.editor{
 	padding-top: 1em;position: relative;float: left;
 }
 
-#editor fieldset fieldset{
+.editor fieldset fieldset{
 	float: left;
 	width: 27em;
 	border: none;
@@ -16,7 +18,7 @@ body,.page,#editor{
 input,select{
 	width: 60%; float: right;
 }
-#editor label{ padding: 0 1em 0 0;
+.editor label{ padding: 0 1em 0 0;
 margin-bottom: .5em;
 	font-weight: bold;
 	font-style: italic;
@@ -27,6 +29,7 @@ margin-bottom: .5em;
 textarea{
 	clear: both;width: 100%;height: 8em;
 }
+
 
 
 .page{
@@ -53,3 +56,4 @@ div.content{
 #stats{
 	display: none;
 }
+
