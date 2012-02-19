@@ -39,8 +39,6 @@ interface noSqlSession{
 // is the same across all databases
 // cookie class extends couch curl ... ? 
 
-require('couchCurl.php');
-
 /*
 
 Coming soon...
