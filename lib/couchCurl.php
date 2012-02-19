@@ -57,8 +57,11 @@ abstract class couchCurl implements noSqlCRUD{
 		}else
 			return "\nMissing _id and/or _rev fields\n";
 	}
-
-	function delete($id,$rev,$database=NULL){return self::__cc('DELETE',"/$id?rev=$rev'".' -H "Content-Length:1"',$db);}
+	// mongo doesnt need an REV but couch does... I want to keep my interfaces... so for couch db's this syntax is kinda funky looking
+	// mongo doesnt really need to know the database to delete something (it mostly relys on the calling class..)
+	function delete($id,$opt,$database=NULL){
+		if($database == NULL) $database = get_called_class();
+	return self::__cc('DELETE',"/$id?rev=$opt'".' -H "Content-Length:1"',$database);}
 	// create a master function list of array functions that take parameters to adjust things in various processing points (i.e. foreach loops)
 	public static function handle_couch_id($id,$base = 12,$decode = false){
 		foreach(explode(':',$id) as $num)

@@ -1,5 +1,11 @@
 <?php
 require('noClass.php');
+
+ define('IMAGE_DIR','/var/www/htdocs/mdocs.net/up/img/');
+// a 'truncated' directory link for public facing URLS/links etc.
+ define('IMAGE_DIR_LINK','/up/img/');
+
+
 class blog extends noClass_html{
 
 	public $_f = array('_id','post_title','category','post_type','post_tags','thumbnail_image','publisher','summary','content','status');
@@ -21,21 +27,15 @@ class blog extends noClass_html{
 	public $status = array('select:status'=> array('draft'=>'Draft','published'=>'Published','private'=>'Private'  ) );
 
 	public function __toString(){
-<<<<<<< HEAD
 		if(!isset($this->category)) $this->categories();
 		if($this->_id != ''){
 			$this->title .= $this->post_title;
 			// Try to add via container..?
 			// quick and easy way to avoid a field showing its parameter setting (if its a string..)
 			if(isset($this->thumbnail_image) && strpos($this->thumbnail_image,'.'))
-				$this->thumbnail_image = self::img_dir_link . $this->thumbnail_image;
+				$this->thumbnail_image = IMAGE_DIR_LINK . $this->thumbnail_image;
 		}
 		
-=======
-		$this->title .= $this->post_title;
-		// Try to add via container..?
-		$this->thumbnail_image = IMAGE_DIR_LINK . $this->thumbnail_image;
->>>>>>> 5cfd6aecc9419586e7b4eed6b6f43955af36a121
 		return parent::__toString();
 	}
 	
