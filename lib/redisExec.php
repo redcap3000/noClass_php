@@ -25,14 +25,12 @@ abstract class redisExec implements noSqlCRUD{
 
 		function get($id,$database=NULL){
 			$key_type = self::key_check($id);
-			echo $key_type;
 			if($key_type != false){
 			// FIRST DETERMINE THE TYPE OF ID using a COMMAND before using GET or SMEMBERS etc..
 			// since GET is the same name as the function we have to override _callStatic to avoid infininte loop
 				if(!in_array($key_type,array('list','set','hash')))
 					 exec(self::pre . " GET $id",$output);
 				 elseif($key_type == 'set'){
-				 	echo 'here';
 				 	$output = self::SMEMBERS($id);
 				 }elseif($key_type == 'hash'){
 				 
@@ -72,7 +70,11 @@ abstract class redisExec implements noSqlCRUD{
 				// so if you give put an indexed array ... then it will attempt to add those values to the member of $id
 				// if array is numeric then add as list ? ?
 				
-//				if(array_keys($data) == array_keys(array_keys($data))){
+					// for compatability with other nosql classes
+					// if ths value is changed it WILL not change the actual key .. but i should simply
+					// make the key check/change on updates to solve problems
+					$hset = '_id "'.$id.'" ';
+
 					foreach($data as $key=>$value){
 						if(is_array($value))
 							$hset .= $key . ' "'. implode(',',$value) . '"';
