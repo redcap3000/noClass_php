@@ -47,6 +47,10 @@ class blog extends noClass_html{
 
 	public function categories($recurse=false){
 		$r = $this->get('blog_categories');
+		if(isset($r['category']) && is_string($r['category'])){
+			$r['category'] = explode(',',$r['category']);
+		}
+
 		
 		if((isset($r['error']) ||$r == false) && $recurse==false){
 		// auto population ... assumes that the error is a document not found ...	

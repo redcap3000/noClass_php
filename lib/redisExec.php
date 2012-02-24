@@ -72,23 +72,27 @@ abstract class redisExec implements noSqlCRUD{
 				// so if you give put an indexed array ... then it will attempt to add those values to the member of $id
 				// if array is numeric then add as list ? ?
 				
-				if(array_keys($data) == array_keys(array_keys($data))){
+//				if(array_keys($data) == array_keys(array_keys($data))){
 					foreach($data as $key=>$value){
+						if(is_array($value))
+							$hset .= $key . ' "'. implode(',',$value) . '"';
+						else{
 							$hset .=  $key . ' "'. $value.'" ';
+							}
 					}
 					return self::HMSET($id,NULL,$hset);
 
-					}
-				else{
+//					}
+//				else{
 				// store as a list instead of set
-					foreach($data as $value){
-						$hset .=   ' "'. $value.'" ';
+//					foreach($data as $value){
+//						$hset .=   ' "'. $value.'" ';
 						// override the static line iwth new new hset..
-					}
-					
-					self::SADD($hset);
+//					}
+//					$hset = $id . $hset;
+//					self::SADD($hset);
 
-				}
+//				}
 				
 			}else{
 			// redis in to only be used for sessions  just store values ... 
